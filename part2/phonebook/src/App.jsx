@@ -1,63 +1,21 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from 'react';
 import numbersService from './services/numbers';
-
-const SearchFilter = ({ search, onSearch }) => {
-  return (
-    <div>
-      filter shown with: <input value={search} onChange={onSearch} />
-    </div>
-  );
-};
-
-const NumberForm = ({
-  onSubmit,
-  newName,
-  newNumber,
-  onNameChange,
-  onNumberChange,
-}) => {
-  return (
-    <form onSubmit={onSubmit}>
-      <div>
-        name: <input value={newName} onChange={onNameChange} />
-      </div>
-      <div>
-        number: <input value={newNumber} onChange={onNumberChange} />
-      </div>
-      <div>
-        <button type="submit">add</button>
-      </div>
-    </form>
-  );
-};
-
-const Number = ({ number }) => {
-  return (
-    <span>
-      {number.name} {number.number}{' '}
-    </span>
-  );
-};
-
-const Numbers = ({ numbers, onNumberDelete }) => {
-  return (
-    <>
-      {numbers.map((number) => (
-        <div key={number.id}>
-          <Number number={number} />
-          <button onClick={() => onNumberDelete(number.id)}>X</button>
-        </div>
-      ))}
-    </>
-  );
-};
+import Notification from './components/Notification';
+import NumberForm from './components/NumberForm';
+import SearchFilter from './components/SearchFilter';
+import Numbers from './components/Numbers';
 
 const App = () => {
-  const [numbers, setNumbers] = useState([]);
+  const [numbers, setNumbers] = useState(null);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [search, setSearch] = useState('');
+  const [notification, setNotification] = useState({
+    show: false,
+    message: '¨',
+    type: 'success',
+  });
 
   useEffect(() => {
     numbersService.getAll().then((data) => {
@@ -65,12 +23,28 @@ const App = () => {
     });
   }, []);
 
+  function showNotification(show, type, message) {
+    setNotification({
+      show,
+      type,
+      message,
+    });
+    setTimeout(() => {
+      setNotification({ ...notification, show: false });
+    }, 3000);
+  }
+
   function handleNumberDelete(id) {
     const numberToDelete = numbers.find((number) => number.id === id);
     if (window.confirm(`Delete ${numberToDelete.name}?`)) {
       numbersService.deleteNumber(id).then((response) => {
         if (response === 'OK') {
           setNumbers(numbers.filter((number) => number.id !== id));
+          showNotification(
+            true,
+            'success',
+            `${numberToDelete.name} was deleted successfully`
+          );
         }
       });
     }
@@ -102,19 +76,29 @@ const App = () => {
                 number.id !== sameName.id ? number : response
               )
             );
+            showNotification(
+              true,
+              'success',
+              `${newName} was updated successfully`
+            );
+          })
+          .catch((err) => {
+            showNotification(
+              true,
+              'error',
+              `${newName} has been already removed from the server`
+            );
           });
       }
     } else {
       numbersService.createNumber(newObject).then((data) => {
         setNumbers(numbers.concat(data));
+        showNotification(true, 'success', `${newName} was added successfully`);
       });
     }
     setNewName('');
     setNewNumber('');
   }
-  const numbersToShow = numbers.filter((number) =>
-    number.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   function handleSearch(e) {
     setSearch(e.target.value);
@@ -128,11 +112,19 @@ const App = () => {
     setNewNumber(e.target.value);
   }
 
+  const numbersToShow = numbers?.filter((number) =>
+    number.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (!numbers) {
+    return null;
+  }
+
   return (
-    <div>
+    <div className="container">
       <h1>Phonebook</h1>
       <SearchFilter search={search} onSearch={handleSearch} />
-      <h2>add a new</h2>
+      <h2>Add a new number</h2>
       <NumberForm
         onSubmit={handleSubmit}
         newName={newName}
@@ -142,6 +134,9 @@ const App = () => {
       />
       <h2>Numbers</h2>
       <Numbers numbers={numbersToShow} onNumberDelete={handleNumberDelete} />
+      {notification.show && (
+        <Notification message={notification.message} type={notification.type} />
+      )}
     </div>
   );
 };

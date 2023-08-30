@@ -1,0 +1,55 @@
+body {
+  font-family: sans-serif;
+  text-align: left;
+}
+
+.container {
+  margin: 0 auto;
+  width: 900px;
+}
+
+h1 {
+  color: green;
+  font-style: italic;
+  text-align: center;
+}
+
+h2 {
+  margin: 40px 0 8px 0;
+}
+
+.number {
+  color: grey;
+  padding-top: 5px;
+  font-size: 15px;
+}
+
+.notification {
+  position: absolute;
+  background: rgba(211, 211, 211, 0.529);
+  font-size: 16px;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px 0;
+  min-width: 400px;
+  bottom: 0;
+  right: 10px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.error {
+  color: red;
+  border: 1px solid red;
+}
+
+.success {
+  color: #2b9348;
+  border: 1px solid #2b9348;
+}
+
+.input {
+  margin: 10px 0;
+}
